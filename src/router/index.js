@@ -20,6 +20,11 @@ export const routes = [
     ]
   },
   {
+    path: '/details/:id',
+    name: 'details',
+    component: () => import('views/details/index')
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('views/login/index'),

@@ -91,6 +91,16 @@ export default {
     visible: Boolean
   },
   data() {
+    // const validateContent = (rule, value, callback) => {
+    //   const exitedRow = this.listItems.find((row) => row.content === value && !row.isEditing)
+    //   if (value === '') {
+    //     callback(new Error('Công việc không được để trống.'))
+    //   } else if (exitedRow) {
+    //     callback(new Error('Công việc đã tồn tại.'))
+    //   } else {
+    //     callback()
+    //   }
+    // }
     return {
       listItems: [],
       form: {
@@ -99,6 +109,11 @@ export default {
       selectedItem: {
         content: ''
       },
+      // rules: {
+      //   content: [
+      //     { validator: validateContent, trigger: blur }
+      //   ]
+      // },
       loading: false
     }
   },

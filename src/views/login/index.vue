@@ -70,7 +70,7 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped>
+<style lang="scss" scope>
 .login{
   width: 20%;
   text-align: center;
@@ -80,7 +80,6 @@ export default {
   border-radius: 15px;
   padding: 20px;
   box-shadow: 6px 2px 15px #cccccc;
-}
   .signup .el-form-item__content{
     display: flex;
     justify-content: center;
@@ -89,4 +88,5 @@ export default {
       color:#007bff;
     }
   }
+}
 </style>

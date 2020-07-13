@@ -63,6 +63,14 @@ function deleteItem(todoId, id) {
     headers: headers()
   })
 }
+function checkedTodoItem(todoId, id, data) {
+  return axios({
+    method: 'PUT',
+    url: `${ENDPOINT.TODOS}/${todoId}/items/${id}`,
+    headers: headers(),
+    data
+  })
+}
 
 export default {
   getAll,
@@ -72,5 +80,6 @@ export default {
   getItem,
   updateItem,
   createItem,
-  deleteItem
+  deleteItem,
+  checkedTodoItem
 }

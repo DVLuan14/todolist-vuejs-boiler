@@ -2,25 +2,18 @@
   <div class="app-container">
     <div class="search">
       <template>
-        <el-input
-          v-model="input"
-          size="mini"
-          placeholder="Type to search"
-          style="width: 150px"
-        >
+        <el-input v-model="input" size="mini" placeholder="Type to search" style="width: 150px">
           <i slot="prefix" class="el-input__icon el-icon-search" />
         </el-input>
-        <el-button icon="el-icon-circle-plus-outline" type="success" size="mini" @click="handleCreateTodo()">
-          Tạo mới
-        </el-button>
+        <el-button
+          icon="el-icon-circle-plus-outline"
+          type="success"
+          size="mini"
+          @click="handleCreateTodo()"
+        >Tạo mới</el-button>
       </template>
     </div>
-    <el-table
-      v-loading="callingAPI"
-      :data="listTodos"
-      style="width: 100%"
-      border
-    >
+    <el-table v-loading="callingAPI" :data="listTodos" style="width: 100%" border>
       <el-table-column width="80" align="center" label="ID">
         <template slot-scope="scope">
           <span>{{ scope.row.id }}</span>
@@ -37,15 +30,8 @@
               :model="form"
               :rules="rules"
             >
-              <el-form-item
-                prop="title"
-              >
-                <el-input
-                  id="title-input"
-                  v-model="form.title"
-                  class="form-title"
-                  size="small"
-                />
+              <el-form-item prop="title">
+                <el-input id="title-input" v-model="form.title" class="form-title" size="small" />
               </el-form-item>
               <div v-loading="loading" class="action">
                 <el-button class="btn-action" type="text" @click="handleSaveCreate()">
@@ -56,25 +42,16 @@
                 </el-button>
               </div>
             </el-form>
-            <router-link type="primary" to>
-              {{ scope.row.title }}
+            <router-link type="primary" :to="{ name: 'details', params: { id: scope.row.id }}">
+              <span @click="openSmallTodos(scope.row)">{{ scope.row.title }}</span>
             </router-link>
           </el-row>
         </template>
       </el-table-column>
-      <el-table-column
-        label="Thao tác"
-        class="selecRight"
-        align="center"
-        width="200"
-      >
+      <el-table-column label="Thao tác" class="selecRight" align="center" width="200">
         <template slot-scope="scope">
           <el-row v-if="!scope.row.isCreating">
-            <el-button
-              size="mini"
-              icon="el-icon-edit"
-              @click="openEdit(scope.row)"
-            >Sửa</el-button>
+            <el-button size="mini" icon="el-icon-edit" @click="openEdit(scope.row)">Sửa</el-button>
             <el-button
               size="mini"
               type="danger"
@@ -105,6 +82,11 @@
       :visible="visibleEdit"
       @close="visibleEdit = false"
     />
+    <!-- <small-todos
+      :data="selectedRow"
+      :visible="visibleSmallTodos"
+      @close="visibleSmallTodos = false"
+    /> -->
   </div>
 </template>
 
@@ -112,18 +94,23 @@
 import todosServices from '@/services/todos'
 import confirmDelete from '@/components/ListTodos/confirmDelete'
 import editTodos from '@/components/ListTodos/editTodo'
+// import smallTodos from './smallTodos.vue'
 
 export default {
   name: 'List',
   components: {
     confirmDelete,
     editTodos
+    // smallTodos
   },
   props: {},
   data() {
     const validateTitle = (rule, value, callback) => {
+      const existedRow = this.listTodos.find((row) => row.title === value && !row.isEditing)
       if (value === '') {
         callback(new Error('Tiêu đề không được để trống.'))
+      } else if (existedRow) {
+        callback(new Error('Tiêu đề đã tồn tại.'))
       } else {
         callback()
       }
@@ -143,6 +130,7 @@ export default {
       },
       visibleDeletePopup: false,
       visibleEdit: false,
+      visibleSmallTodos: false,
       selectedRow: null,
       currentPage: 1,
       totalPage: 0
@@ -162,15 +150,12 @@ export default {
         }))
         this.totalPage = parseInt(res.headers['x-total-pages'], 0)
         this.callingAPI = false
+      }).catch((e) => {
+        if (e.status === 422) {
+          this.$router.push('/login')
+        }
       })
-      // .catch((res) => {
-      //   if (res.status === 422) {
-      //     this.$router.push('/login')
-      //     this.loading = false
-      //   }
-      // })
     },
-
     handleCreateTodo() {
       this.handleCancelForm()
       const newTitle = {
@@ -184,15 +169,18 @@ export default {
         if (input) input.select()
       })
     },
-
     handleSaveCreate() {
-      todosServices.createTodo({ title: this.form.title }).then(() => {
-        this.getListTodos()
-        this.$message({
-          title: 'Thông báo',
-          type: 'success',
-          message: 'Thêm mới thành công.'
-        })
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          todosServices.createTodo({ title: this.form.title }).then(() => {
+            this.getListTodos()
+            this.$message({
+              title: 'Thông báo',
+              type: 'success',
+              message: 'Thêm mới thành công.'
+            })
+          })
+        }
       })
     },
     handleCancelForm() {
@@ -208,6 +196,11 @@ export default {
         isEditing: false,
         isCreating: false
       }))
+    },
+    openSmallTodos(todo) {
+      this.$route.params.id
+      this.selectedRow = todo
+      // this.visibleSmallTodos = true
     },
     openEdit(todo) {
       this.selectedRow = todo
@@ -245,38 +238,38 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.app-container{
+.app-container {
   width: 50%;
   margin: auto;
-  .search{
+  .search {
     width: 250px;
     float: right;
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
   }
-  .el-table .cell{
+  .el-table .cell {
     display: flex;
   }
-  .form-edit{
+  .form-edit {
     display: flex;
-    .action{
+    .action {
       display: flex;
       margin-left: 10px;
-      .button{
+      .button {
         font-size: 20px;
       }
-      .el-icon-close{
+      .el-icon-close {
         color: red;
       }
     }
   }
-  .pagination{
+  .pagination {
     text-align: center;
     margin: 10px;
   }
 }
-.btn-action{
+.btn-action {
   display: flex;
 }
 </style>

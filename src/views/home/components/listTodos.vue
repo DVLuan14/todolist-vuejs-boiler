@@ -2,7 +2,13 @@
   <div class="app-container">
     <div class="search">
       <template>
-        <el-input v-model="input" size="mini" placeholder="Type to search" style="width: 150px">
+        <el-input
+          v-model="input"
+          size="mini"
+          placeholder="Type to search"
+          style="width: 150px"
+          @input="searchItem"
+        >
           <i slot="prefix" class="el-input__icon el-icon-search" />
         </el-input>
         <el-button
@@ -94,6 +100,8 @@
 import todosServices from '@/services/todos'
 import confirmDelete from '@/components/ListTodos/confirmDelete'
 import editTodos from '@/components/ListTodos/editTodo'
+import axios from 'axios'
+import userServices from '@/lib/userServices'
 // import smallTodos from './smallTodos.vue'
 
 export default {
@@ -140,9 +148,9 @@ export default {
     this.getListTodos()
   },
   methods: {
-    getListTodos() {
+    async getListTodos() {
       this.callingAPI = true
-      todosServices.getAll({ page: this.currentPage, limit: 5 }).then((res) => {
+      await todosServices.getAll({ page: this.currentPage, limit: 5 }).then((res) => {
         this.listTodos = res.data.map((todo) => ({
           ...todo,
           isCreating: false,
@@ -223,6 +231,21 @@ export default {
           type: 'success',
           message: 'Xóa thành công.'
         })
+      })
+    },
+    async searchItem(keyword) {
+      const res = await this.handleSearch(keyword, this.currentPage, 5)
+      this.listTodos = res.data
+      this.totalPage = parseInt(res.headers['x-total-pages'], 0)
+    },
+    handleSearch(text) {
+      return axios({
+        method: 'get',
+        url: `https://mockup-api.herokuapp.com/api/v1/todos/search?page=${this.currentPage}&limit=5&q=${text}`,
+        headers: {
+          Authorization: userServices.userData().auth_token,
+          'Content-Type': 'application/json'
+        }
       })
     },
     changePage(value) {
